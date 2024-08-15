@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShopEasy</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    /* Custom CSS */
+    .remove-button {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 0.25rem;
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .remove-button:hover {
+      background-color: #dc2626;
+    }
+    .product-container {
+      display: flex;
+      align-items: flex-start;
+      padding: 1rem;
+      background-color: white;
+      border-radius: 0.5rem;
+      position: relative;
+      margin-bottom: 1rem;
+      border: 1px solid #e5e7eb;
+    }
+    .product-details {
+      margin-top: 20px;
+      flex: 1;
+      padding-left: 1rem;
+    }
+    .product-images {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 40%;
+      margin: 10px;
+      padding: 10px;
+      position: relative;
+    }
+    .product-thumbnails {
+      display: flex;
+      overflow: hidden;
+      margin-top: 10px;
+      margin-bottom: 1rem;
+      position: relative;
+      align-items: center;
+    }
+    .thumbnail-image {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      border: 1px solid #e5e7eb;
+    }
+    .video-thumbnail {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      background: url("https://img.icons8.com/ios-filled/50/000000/video-file.png") no-repeat center center;
+      background-size: cover;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      border: 1px solid #e5e7eb;
+    }
+    .video-thumbnail::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: url("https://img.icons8.com/ios-filled/50/ffffff/play.png") no-repeat center center;
+      background-size: contain;
+    }
+    .main-product-image {
+      width: 100%;
+      height: 500px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+    }
+    .main-product-video {
+      width: 100%;
+      height: 500px;
+      display: none;
+    }
+    .nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.8);
+      border: none;
+      padding: 0.5rem;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      z-index: 10;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-button.left {
+      left: -30px;
+    }
+    .nav-button.right {
+      right: -30px;
+    }
+    .nav-button i {
+      color: #333;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <header class="bg-white shadow-md">
+    <div class="container mx-auto px-4 py-6">
+      <h1 class="text-3xl font-bold text-gray-800">ShopEasy</h1>
+    </div>
+  </header>
+  <main class="container mx-auto px-4 py-8">
+    <div id="product-container" class="flex flex-col space-y-4"></div>
+    <div class="text-center mt-8">
+      <a href="index.html" class="bg-blue-500 text-white px-4 py-2 rounded-md text-sm md:text-base hover:bg-blue-600 transition-colors duration-300">
+        Back to Home
+      </a>
+    </div>
+  </main>
+  <footer class="bg-white shadow-md mt-8">
+    <div class="container mx-auto px-4 py-6 text-center">
+      <p class="text-gray-600">© 2024 ShopEasy. All rights reserved.</p>
+    </div>
+  </footer>
+  <script>
+    function displayProductDetails() {
+      const productContainer = document.getElementById("product-container");
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+      console.log("Cart Data:", cart); // Check what data is being retrieved
+
+      if (cart.length === 0) {
+        productContainer.innerHTML = '<p class="text-center text-gray-600">No product details available.</p>';
+        return;
+      }
+
+      productContainer.innerHTML = "";
+
+      cart.forEach((item, index) => {
+        console.log("Product Item:", item); // Check the individual product data
+
+        const mediaItems = [
+          item.product_img,
+          item["product_img-2"],
+          item["product_img-3"],
+          item["product_img-4"],
+        ];
+
+        const videoSrc = item["product_video-1"];
+
+        const mediaElements = mediaItems
+          .map((src, i) => {
+            return src
+              ? `<img src="${src}" alt="Thumbnail ${i + 1}" class="thumbnail-image" onclick="updateMainMedia('image', '${src}')" />`
+              : "";
+          })
+          .join("");
+
+        const videoThumbnailElement = videoSrc
+          ? `<div class="video-thumbnail" onclick="updateMainMedia('video', '${videoSrc}')" title="Play Video"></div>`
+          : "";
+
+        const productDetails = `
+          <div class="product-container">
+            <div class="product-images">
+              <img src="${item.product_img}" alt="Main Image" class="main-product-image" id="main-product-image" />
+              <iframe src="" class="main-product-video" id="main-product-video" style="display: none;"></iframe>
+              <div class="product-thumbnails">
+                ${mediaElements}
+                ${videoThumbnailElement}
+                <button class="nav-button left" onclick="scrollThumbnails(-100)">
+                  <i class="fa fa-chevron-left"></i>
+                </button>
+                <button class="nav-button right" onclick="scrollThumbnails(100)">
+                  <i class="fa fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+            <div class="product-details">
+              <button class="remove-button" onclick="removeItem(${index})">
+                <i class="fas fa-times"></i>
+              </button>
+              <h3 class="text-xs mt-8 font-semibold text-gray-500">${item.item_id || 'N/A'}</h3>
+              <p class="text-3xl text-gray-800 mt-2">${item.sku || 'N/A'}</p>
+              <a href="index.html" class="text-blue-600 hover:underline text-sm inline-block">Visit the Store</a>
+              <div class="flex items-center mt-1">
+                <span class="text-yellow-500 text-xl"> <i class="fa-solid fa-star text-lg"></i> 
+                  <i class="fa-solid fa-star text-lg"></i>
+                  <i class="fa-solid fa-star text-lg"></i>
+                  <i class="fa-regular fa-star-half-stroke text-lg"></i>
+                  <i class="fa-regular fa-star text-lg"></i> ${item.rating || 'N/A'}</span>
+              </div>
+              <div class="mt-4">
+                <span class="bg-red-600 text-white px-2 py-1 rounded text-xs font-medium">Great Freedom Sale</span>
+              </div>
+              <div class="mt-4">
+                <div class="flex items-baseline">
+                  <span class="text-red-600 text-2xl font-bold mr-2">-${item.discount_amount ? item.discount_amount.toFixed() : '0'}%</span>
+                  <span class="text-2xl font-bold text-gray-800">₹${item.price ? (item.price - (item.price * (item.discount_amount || 0)) / 100).toFixed(2) : '0.00'}</span>
+                </div>
+                <p class="text-gray-500 line-through mt-1">M.R.P.: ₹${item.price || '0.00'}</p>
+              </div>
+              <p class="text-gray-600 text-sm mt-2">Inclusive of all taxes</p>
+              <a href="https://wa.me/+919540666692?text=${encodeURIComponent(`Check out this product!\n\n${item.product_img}\nItem ID: ${item.item_id || 'N/A'}\nSKU: ${item.sku || 'N/A'}\nPrice: ₹${item.price || '0.00'}\nDiscount: ₹${item.discount_amount || '0'}\nCategory: ${item.category_name_1 || 'N/A'}\nStatus: ${item.status || 'N/A'}\nAdded: ${new Date(item.created_at).toLocaleDateString()}`)}" 
+                class="bg-green-500 text-white px-4 py-2 rounded-md text-bold hover:bg-green-600 transition-colors duration-300 mt-4 inline-block" 
+                target="_blank">🛒 Buy Now to Contact Us!
+              </a>
+              <hr class="my-4" />
+              <div class="flex gap-10 mt-10">
+                <div class="flex flex-col items-center text-center">
+                  <img class="h-10 w-10" src="./img/1.png" alt="7 Day-Return">
+                  <p class="text-sm">7 Day-Return</p>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                  <img class="h-10 w-10" src="./img/2.png" alt="Free Delivery">
+                  <p>Free Delivery</p>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                  <img class="h-10 w-10" src="./img/3.png" alt="No Pay on Delivery">
+                  <p>No Pay on Delivery</p>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                  <img class="h-10 w-10" src="./img/4.png" alt="Top Brand">
+                  <p>Top Brand</p>
+                </div>
+              </div>
+              <hr class="my-4" />
+              <div class="relative">
+                <p class="font-semibold">** Product Detail **</p>
+                <ul>${item["Product-Dis"] ? item["Product-Dis"].replace(/\n/g, '<li>') : 'No details available.'}</ul>
+              </div>
+            </div>
+          </div>
+        `;
+        productContainer.innerHTML += productDetails;
+      });
+    }
+
+
+    function updateMainMedia(type, src) {
+      const mainImage = document.getElementById("main-product-image");
+      const mainVideo = document.getElementById("main-product-video");
+
+      if (type === "image") {
+        mainImage.src = src;
+        mainImage.style.display = "block";
+        mainVideo.style.display = "none";
+      } else if (type === "video") {
+        mainVideo.src = src;
+        mainVideo.style.display = "block";
+        mainImage.style.display = "none";
+      }
+    }
+
+    function scrollThumbnails(direction) {
+      const thumbnailContainer = document.querySelector(".product-thumbnails");
+      thumbnailContainer.scrollBy({ left: direction, behavior: "smooth" });
+    }
+
+    function removeItem(index) {
+      let cart = JSON.parse(localStorage.getItem("cart")) || [];
+      cart.splice(index, 1);
+      localStorage.setItem("cart", JSON.stringify(cart));
+      displayProductDetails();
+    }
+
+    document.addEventListener("DOMContentLoaded", displayProductDetails);
+  </script>
+</body>
+</html>

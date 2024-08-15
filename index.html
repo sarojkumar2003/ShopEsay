@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shopping Website</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- font CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      /* Hide scrollbar for horizontal scrolling */
+      .horizontal-scroll {
+        display: flex;
+        overflow-x: auto;
+        gap: 16px;
+        padding: 8px;
+        scroll-behavior: smooth;
+        position: relative;
+      }
+
+      .horizontal-scroll::-webkit-scrollbar {
+        display: none;
+        /* Hide scrollbar for WebKit browsers */
+      }
+
+      .horizontal-scroll {
+        -ms-overflow-style: none;
+        /* Hide scrollbar for Internet Explorer and Edge */
+        scrollbar-width: none;
+        /* Hide scrollbar for Firefox */
+      }
+
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem; /* Increased gap between cards */
+        width: 100%;
+      }
+
+      /* Card and image styles */
+      .product-card {
+        width: 250px;
+        /* Fixed width for each card */
+        height: auto;
+        /* Allow height to adjust based on content */
+        flex-shrink: 0;
+        background: rgb(255, 255, 255);
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgb(204, 202, 202);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 16px;
+        box-sizing: border-box;
+        position: relative;
+        /* Ensure the button is positioned relative to the card */
+      }
+
+      .product-image {
+        height: 200px;
+        /* Height of product image */
+        width: 100%;
+        /* Full width of card */
+        object-fit: cover;
+        border-radius: 8px;
+        transition: transform 0.3s ease;
+        /* Smooth transition for hover effect */
+      }
+
+      .product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .product-card:hover .product-image {
+        transform: scale(1.1);
+        /* Enlarge image on hover */
+      }
+
+      /* Navigation buttons */
+      .nav-button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.8);
+        border: none;
+        padding: 10px;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+        z-index: 10;
+      }
+
+      .nav-button.left {
+        left: 10px;
+      }
+
+      .nav-button.right {
+        right: 10px;
+      }
+
+      /* Add to Cart button */
+      .add-to-cart-button {
+        background: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        width: 100%;
+        /* Ensure button spans the full width of the card */
+        text-align: center;
+        /* Center text within the button */
+        font-size: 16px;
+        /* Font size for the button text */
+        margin-top: 16px;
+        /* Add space above the button */
+      }
+
+      .add-to-cart-button:hover {
+        background: #45a049;
+      }
+
+      /* Truncated text */
+      .truncate {
+        white-space: nowrap;
+        /* Prevent text from wrapping to a new line */
+        overflow: hidden;
+        /* Hide the overflowing text */
+        text-overflow: ellipsis;
+        /* Add ellipsis (...) to indicate truncation */
+      }
+
+      /* Responsive styles */
+      @media (max-width: 768px) {
+        .product-card {
+          width: 200px;
+          /* Adjust card width for tablets */
+          height: auto;
+          /* Allow card height to adjust based on content */
+        }
+
+        .product-image {
+          height: 150px;
+          /* Adjust image height for tablets */
+        }
+
+        .nav-button {
+          padding: 8px;
+          /* Reduce size of navigation buttons for smaller screens */
+        }
+      }
+
+      @media (max-width: 480px) {
+        .product-card {
+          width: 150px;
+          /* Adjust card width for mobile */
+          height: auto;
+          /* Allow card height to adjust based on content */
+        }
+
+        .product-image {
+          height: 100px;
+          /* Adjust image height for mobile */
+        }
+
+        .add-to-cart-button {
+          font-size: 14px;
+          /* Reduce font size for button text on mobile */
+          padding: 8px;
+          /* Adjust button padding for mobile */
+        }
+      }
+
+      /* Loading bar styles */
+      .spinner-border {
+        border-width: 4px;
+        border-color: transparent;
+        border-top-color: #4caf50;
+        border-radius: 50%;
+        width: 4rem;
+        height: 4rem;
+      }
+
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Hide loading bar initially */
+      #loading-bar {
+        display: none;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-100">
+    <!-- Loading Bar -->
+    <div
+      id="loading-bar"
+      class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50"
+    >
+      <div
+        class="spinner-border animate-spin h-16 w-16 border-t-4 border-blue-500 rounded-full"
+      ></div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+      <div class="container mx-auto px-4 py-6">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <h1
+            class="text-3xl font-bold text-gray-800 mb-4 md:mb-0 text-base md:text-3xl"
+          >
+            ShopEasy
+          </h1>
+          <!-- Adjust font size here -->
+          <div class="flex flex-col md:flex-row items-center">
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Search..."
+              class="px-4 py-2 rounded-md border border-gray-300 mb-4 md:mb-0 text-sm md:text-base"
+            />
+            <!-- Adjust font size here -->
+            <button
+              id="search-button"
+              class="bg-blue-500 text-white px-4 py-2 rounded-md ml-2 text-sm md:text-base"
+            >
+              Search
+            </button>
+            <!-- Adjust font size here -->
+          </div>
+          <div class="flex flex-col md:flex-row mt-4 md:mt-0 items-center">
+            <a
+              href="addToCard.html"
+              class="text-gray-800 hover:text-blue-500 ml-4 text-sm md:text-base border border-gray-300 shadow-md shadow-purple-500 rounded-md px-4 py-2 flex items-center gap-2 transition-colors duration-300"
+            >
+              <i class="fas fa-shopping-cart text-blue-500"></i>
+              Cart
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+      <div id="category-container" class="space-y-8">
+        <!-- Categories and products will be dynamically loaded here -->
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white shadow-md mt-8">
+      <div class="container mx-auto px-4 py-6 text-center">
+        <p class="text-gray-600 text-sm md:text-base">
+          © 2024 ShopEasy. All rights reserved.
+        </p>
+        <!-- Adjust font size here -->
+      </div>
+    </footer>
+
+    <script>
+      let items = [];
+      const itemsPerPage = 15; // Number of items to display on the homepage
+
+      function displayProducts(products) {
+        const categoryContainer = document.getElementById("category-container");
+        categoryContainer.innerHTML = ""; // Clear existing content
+
+        // Categorize items
+        const categories = products.reduce((acc, item) => {
+          const category = item.category_name_1;
+          if (category && item.item_id) {
+            // Ensure category and item_id are defined
+            if (!acc[category]) {
+              acc[category] = [];
+            }
+            acc[category].push(item);
+          }
+          return acc;
+        }, {});
+
+        // Create and append category sections
+        Object.keys(categories).forEach((category) => {
+          const displayedProducts = categories[category].slice(0, itemsPerPage);
+          if (displayedProducts.length === 0) return; // Skip empty categories
+
+          const categorySection = document.createElement("div");
+          categorySection.classList.add("space-y-4", "relative");
+
+          const categoryTitle = document.createElement("h2");
+          categoryTitle.classList.add(
+            "text-2xl",
+            "font-bold",
+            "text-gray-800",
+            "mb-4"
+          );
+          categoryTitle.textContent = category;
+
+          const productRow = document.createElement("div");
+          productRow.classList.add("horizontal-scroll");
+
+          // Add products to the row
+          displayedProducts.forEach((item) => {
+            const productCard = document.createElement("div");
+            productCard.classList.add("product-card");
+
+            productCard.innerHTML = `
+                <img src="${
+                  item.product_img
+                }" alt="Product Image" class="product-image mb-4">
+                <div class="w-full text-left">
+                    <h3 class="text-sm text-gray-800">${item.item_id}</h3>
+                    <p class="text-gray-600 mt-1 font-semibold text-xs truncate">${
+                      item.sku
+                    }</p>
+                    <p class="text-gray-600 mt-1 font-bold text-lg">Price: ₹${
+                      item.price
+                        ? (
+                            item.price -
+                            (item.price * item.discount_amount) / 100
+                          ).toFixed(2)
+                        : "0.00"
+                    }</p>
+                </div>
+                <button class="add-to-cart-button text-sm" data-item-id="${
+                  item.item_id
+                }">Add to Cart</button>
+            `;
+
+            productRow.appendChild(productCard);
+          });
+
+          const viewMoreButton = document.createElement("button");
+          viewMoreButton.classList.add(
+            "bg-blue-500",
+            "text-white",
+            "px-4",
+            "py-2",
+            "rounded-md",
+            "mt-4",
+            "w-full"
+          );
+          viewMoreButton.textContent = "View More";
+          viewMoreButton.addEventListener("click", () => {
+            window.location.href = `product-details.html?category=${encodeURIComponent(
+              category
+            )}`;
+          });
+
+          categorySection.appendChild(categoryTitle);
+          categorySection.appendChild(productRow);
+          categorySection.appendChild(viewMoreButton);
+
+          // Add navigation buttons (optional)
+          const leftButton = document.createElement("button");
+          leftButton.classList.add("nav-button", "left");
+          leftButton.innerHTML = "&larr;";
+          leftButton.addEventListener("click", () => {
+            productRow.scrollBy({ left: -250, behavior: "smooth" });
+          });
+
+          const rightButton = document.createElement("button");
+          rightButton.classList.add("nav-button", "right");
+          rightButton.innerHTML = "&rarr;";
+          rightButton.addEventListener("click", () => {
+            productRow.scrollBy({ left: 250, behavior: "smooth" });
+          });
+
+          categorySection.appendChild(leftButton);
+          categorySection.appendChild(rightButton);
+
+          categoryContainer.appendChild(categorySection);
+        });
+
+        // Add event listeners for "Add to Cart" buttons
+        document.querySelectorAll(".add-to-cart-button").forEach((button) => {
+          button.addEventListener("click", function () {
+            const itemId = this.getAttribute("data-item-id");
+            addToCart(itemId);
+          });
+        });
+      }
+
+      // Function to handle adding items to the cart
+      function addToCart(itemId) {
+        const item = items.find(
+          (item) => String(item.item_id).trim() === String(itemId).trim()
+        );
+        if (item) {
+          let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+          // Check if item is already in the cart
+          const existingItemIndex = cart.findIndex(
+            (cartItem) => cartItem.item_id === itemId
+          );
+          if (existingItemIndex > -1) {
+            // Item is already in the cart
+            alert("This item is already in your cart!");
+          } else {
+            // Add new item to cart
+            item.quantity = 1; // Initialize quantity for new items
+            cart.push(item);
+            localStorage.setItem("cart", JSON.stringify(cart));
+
+            // Debugging statements
+            console.log("Item added:", item);
+            console.log("Current cart:", cart);
+
+            alert("Item added to cart!");
+          }
+
+          // Redirect to cart section
+          window.location.href = "./addToCard.html"; // Replace "#cart-section" with the actual ID or URL of the cart section
+        } else {
+          console.error("Item not found:", itemId);
+        }
+      }
+
+      // Function to show the loading bar
+      function showLoadingBar() {
+        document.getElementById("loading-bar").style.display = "flex";
+      }
+
+      // Function to hide the loading bar
+      function hideLoadingBar() {
+        document.getElementById("loading-bar").style.display = "none";
+      }
+
+      // Fetching data from the API
+      function fetchData() {
+        showLoadingBar(); // Show the loading bar when data fetching starts
+
+        fetch(
+          "https://script.google.com/macros/s/AKfycbyRXMkNz4O8VSlPhZJz0cOijHroxqEegpMvlSxZbIrMuJXQ1NDic4qC4QDReu5vPavSPg/exec"
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            items = data.data || []; // Save the items for later use
+            console.log("Items array:", items); // Log the items array to check its contents
+            displayProducts(items); // Display initial products
+          })
+          .catch((error) => console.error("Error fetching data:", error))
+          .finally(() => {
+            hideLoadingBar(); // Hide the loading bar when data fetching is done
+          });
+      }
+
+      // Call fetchData to start loading data when the page loads
+      document.addEventListener("DOMContentLoaded", fetchData);
+    </script>
+  </body>
+</html>
